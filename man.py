@@ -9,7 +9,7 @@ import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import asyncio
 
-
+import tempfile
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai_tools import SerperDevTool
 from custom_tool import DocumentSearchTool
@@ -136,24 +136,22 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Choose a PDF file", type=["pdf"])
 
     if uploaded_file is not None:
-        # If there's a new file and we haven't set pdf_tool yet...
+        # Create a temporary file for storing the uploaded PDF
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+            temp_file.write(uploaded_file.getvalue())
+            temp_file_path = temp_file.name  # Store the temporary file path
+        
+        # Index the PDF only if it hasn’t been processed yet
         if st.session_state.pdf_tool is None:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                temp_file_path = os.path.join(temp_dir, uploaded_file.name)
-                with open(temp_file_path, "wb") as f:
-                    f.write(uploaded_file.getvalue())
-
-                with st.spinner("Indexing PDF... Please wait..."):
-                    
-                    st.session_state.pdf_tool = DocumentSearchTool(file_path=temp_file_path)
-                    
-            
+            with st.spinner("Indexing PDF... Please wait..."):
+                st.session_state.pdf_tool = DocumentSearchTool(file_path=temp_file_path)
             st.success("PDF indexed! Ready to chat.")
 
         # Optionally display the PDF in the sidebar
         display_pdf(uploaded_file.getvalue(), uploaded_file.name)
 
     st.button("Clear Chat", on_click=reset_chat)
+
 
 
 st.markdown("""
