@@ -1,0 +1,12 @@
+streamlit
+langchain
+langchain-groq
+langchain_openai
+langchain_google_genai
+crewai
+pysqlite3-binary
+exa_py
+langchain-community
+fastapi
+uvicorn
+gunicorn
